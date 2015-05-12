@@ -1,3 +1,6 @@
 .idea
+.idea/*
 reports
+reports/*
 node_modules
+node_modules/*
