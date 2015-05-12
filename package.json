@@ -1,0 +1,7 @@
+{
+    "dependencies": {
+        "frisby":">=0.8.5",
+        "MD5":">=1.0",
+        "jsonschema":">=1.0.1"
+    }
+}
