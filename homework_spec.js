@@ -1,12 +1,49 @@
 var 功能=require('./functions.js');
 var 配置=require('./config.js');
+var frisby = require('frisby');
 var schema = require('./schema.js');
+var dateformat=require('dateformat');
 
 function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
 }
 
+function timeHour(time){
+    return dateformat(time, 'yyyy-mm-dd HH');
+}
+
+function toss(f, msg){
+    return function(){
+        //console.log('toss ' + msg);
+        f.toss();
+    }
+}
+
+//frisby.after() just add a function to array and invoke them when .toss()
+function pipeLine(works){
+    for(var i = 0; i < works.length - 1; i++){
+        works[i].after(toss(works[i+1], ''+(i+1)));
+    }
+    return works[0];
+}
+
+var testsPipline = function(){
+    var f1= frisby.create('test 1')
+            .get('http://192.168.5.120:8080/static/3ef9f60c/images/title.png');
+    var f2= frisby.create('test 2')
+            .get('http://192.168.5.120:8080/static/3ef9f60c/images/title.png');
+    var f3= frisby.create('test 3')
+            .get('http://192.168.5.120:8080/static/3ef9f60c/images/title.png');
+    if(true) {
+        toss(pipeLine([f1, f2, f3]), 0)();
+    }else {
+        //console.log('toss 0');
+        pipeLine([f1, f2, f3]).toss();
+    }
+}
+
 var tests = function() {
+    //完成一个完整的作业流程
     功能.学生登陆(配置.学生用户名,配置.密码).after(function(err,res){
         var sToken = 配置.getToken(res);
         功能.学生信息(sToken).afterJSON(function(sInfo) {
@@ -20,9 +57,38 @@ var tests = function() {
                         var book = json.results[getRandomInt(0, json.results.length)];
                         var units = JSON.parse(book.units);
                         var unit = units[getRandomInt(0, units.length)];
-                        功能.获取单元句子内容(tToken, book.bookID, unit.name, null).after(function () {
-                            功能.登出(tToken).toss();
-                            功能.登出(sToken).toss();
+                        功能.获取单元句子内容(tToken, book.bookID, unit.name, null).afterJSON(function (sentences) {
+                            //获取全部句子
+                            功能.获取单元单词内容(tToken,book.bookID,unit.name).afterJSON(function(words) {
+                                //获取全部单词
+                                var start = new Date();
+                                var end = new Date();
+                                end.setDate(end.getDate() + 1);
+                                var mapWordId = function(w){return w.wordID};
+                                var mapSentencesId = function(s){return w.contentID};
+                                var filterAll = function(){return true}
+                                var pipelineDecisions = [
+                                    {type:schema.作业.类型.单词朗读.值,map:mapWordId, filter:filterAll,isWord:true},
+                                    {type:schema.作业.类型.句子朗读.值,map:mapSentencesId,filter:schema.作业.类型.句子朗读.filter,isWord:false},
+                                    {type:schema.作业.类型.听写句子.值,map:mapSentencesId,filter:schema.作业.类型.听写句子.filter,isWord:false},
+                                    {type:schema.作业.类型.听选词义.值,map:mapWordId, filter:filterAll,isWord:true},
+                                    {type:schema.作业.类型.对话朗读.值,map:mapSentencesId,filter:schema.作业.类型.对话朗读.filter,isWord:false},
+                                    {type:schema.作业.类型.短文朗读.值,map:mapSentencesId,filter:schema.作业.类型.短文朗读.filter,isWord:false}
+                                ];
+                                var frisbies=[];
+                                pipelineDecisions.forEach(function(d){
+                                    var wordIds = d.isWord ? words.results.filter(d.filter).map(d.map) : [];
+                                    var sentencesIds = d.isWord ? [] : sentences.results.filter(d.filter).map(d.map);
+                                    if(wordIds.length + sentencesIds.length > 0) {
+                                        frisbies.push(功能.布置作业(tToken, unit.name, '自动化测试布置作业-' + d.type + '标题', '自动化测试布置作业-' + d.type + '留言', timeHour(start), timeHour(end),
+                                            wordIds, sentencesIds, sInfo.results[0].tclass.classID, d.type));
+                                    }
+                                });
+                                pipeLine(frisbies).after(function(){
+                                    功能.登出(sToken);
+                                    功能.登出(tToken);
+                                }).toss()
+                            }).toss();
                         }).toss();
                     }).toss();
                 }).toss();

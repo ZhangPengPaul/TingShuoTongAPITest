@@ -10,7 +10,42 @@ exports.书籍={
         required:['bookID','bookName','grade','units']
     },
     单元:{
-        内容:{
+        单词:{
+            信息: {
+                id:'book/unit/word/info',
+                properties:{
+                    wordID:{type:'integer'},
+                    bookID:{type:'integer'},
+                    index:{type:'integer'},
+                    meta1:{type:'string',minLength:1},
+                    content:{type:'string',minLength:5}
+                },
+                required:['wordID','bookID','index','meta1','content']
+            },
+            值:{
+                id:'book/unit/word/value',
+                properties:{
+                    pronounce:{
+                        type:'array',
+                        items:{type:'string',minLength:1}
+                    },
+                    voice:{type:'string',minLength:1},
+                    word:{type:'string',minLength:1},
+                    mean:{
+                        type:'array',
+                        items:{
+                            properties:{
+                                part:{type:'string'},
+                                mean:{type:'string', minLength:1}
+                            },
+                            required:['mean']
+                        }
+                    }
+                },
+                required:['word','voice']
+            }
+        },
+        句子:{
             信息: {
                 id: 'book/unit/content/info',
                 properties: {
@@ -58,6 +93,20 @@ exports.书籍={
         对话:0,
         段落:1,
         NotesText:2
+    }
+}
+exports.作业={
+    类型:{
+        单词朗读:{值:"单词朗读"},//word
+        句子朗读:{值:"句子朗读",//0,1,2
+            filter:function(s){return true}},
+        短文朗读:{值:"短文朗读",//1
+            filter:function(s){return s.type == 1}},
+        听选词义:{值:"听选词义"},//word
+        听写句子:{值:"听写句子",//0,1,2
+            filter:function(s){return true}},
+        对话朗读:{值:"对话朗读",//0
+            filter:function(s){return s.type == 0}}
     }
 }
 exports.用户={

@@ -62,10 +62,34 @@ var 学生登陆=function(name,password) {
             });
 };
 
+var getWordOfUnit = function(token,bookID,unit){
+    var p ={bookID:bookID,meta1:unit};
+    return frisby.create('get unit words')
+        .get(config.SERVER + 'word/list?' + querystring.stringify(p), {
+            headers:{
+                "Cookie": token
+            }
+        })
+        .expectStatus(200)
+        .inspectJSON()
+        .expectJSONSchema({
+            code: {type: "integer", maximum: 200, minimum: 200},
+            msg: {type: "string", pattern: 'success'},
+            results: {type: 'array', items: schema.书籍.单元.单词.信息}
+        })
+        .afterJSON(function(body){
+            for(var i = 0; i < body.results.length; i++){
+                //console.log('to schema:' + body.results[i].content);
+                var json =JSON.parse(body.results[i].content);
+                schemaJsonString('results[' + i + '].content', body.results[i].content, schema.书籍.单元.单词.值);
+            }
+        })
+}
+
 var getSentenceContentOfUnit = function(token, bookID, unit, type){
     var p = { bookID:bookID, meta1:unit};
     type && (p.type = type);
-    return frisby.create('get unit content')
+    return frisby.create('get unit sentences')
         .get(config.SERVER + 'content/list?'+querystring.stringify(p),{
             headers:{
                 "Cookie": token
@@ -77,7 +101,7 @@ var getSentenceContentOfUnit = function(token, bookID, unit, type){
             properties: {
                 code: {type: "integer", maximum: 200, minimum: 200},
                 msg: {type: "string", pattern: 'success'},
-                results: {type: 'array', items: schema.书籍.单元.内容.信息}
+                results: {type: 'array', items: schema.书籍.单元.句子.信息}
             },
             required: ['code', 'msg','results']
         }).afterJSON(function(body){
@@ -86,7 +110,7 @@ var getSentenceContentOfUnit = function(token, bookID, unit, type){
                 var json =JSON.parse(body.results[i].content);
                 schemaJsonString('results[' + i + '].content', body.results[i].content, {
                     type: "array",
-                    items: body.results[i].type == schema.书籍.句子类型.对话 ? schema.书籍.单元.内容.值.对话 :schema.书籍.单元.内容.值.非对话
+                    items: body.results[i].type == schema.书籍.句子类型.对话 ? schema.书籍.单元.句子.值.对话 :schema.书籍.单元.句子.值.非对话
                 });
             }
         });
@@ -139,6 +163,22 @@ var teacherInfo = function(token){
         })
 }
 
+var addHomework = function(token, unit, title, message, start, deadline, words, sentences, classes,type){
+    var p={meta1:unit,title:title,message:message,limitStart:start,limitEnd:deadline,wordID:words,contentID:sentences,classID:classes,homeworkType:type};
+    return frisby.create('add homework type ' + type)
+        .post(config.SERVER+'homework/assign', p,{
+            headers:{
+                "Cookie": token
+            }
+        })
+        .expectStatus(200)
+        .inspectJSON()
+        .expectJSON({
+            code:200,
+            msg:'布置作业成功'
+        });
+}
+
 var studentInfo = function(token){
     return frisby.create('get student info')
         .get(config.SERVER + 'personalinfo',{
@@ -166,3 +206,5 @@ exports.学生登陆 = 学生登陆;
 exports.登出 = 登出;
 exports.老师获取书籍 = 老师获取书籍;
 exports.获取单元句子内容=getSentenceContentOfUnit;
+exports.获取单元单词内容=getWordOfUnit;
+exports.布置作业=addHomework;
