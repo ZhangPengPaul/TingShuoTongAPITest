@@ -3,6 +3,7 @@
         "frisby":">=0.8.5",
         "MD5":">=1.0",
         "jsonschema":">=1.0.1",
-        "dateformat":">=1.0"
+        "dateformat":">=1.0",
+        "qs":">=2.4.2"
     }
 }

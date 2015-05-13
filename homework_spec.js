@@ -27,19 +27,15 @@ function pipeLine(works){
     return works[0];
 }
 
-var testsPipline = function(){
-    var f1= frisby.create('test 1')
-            .get('http://192.168.5.120:8080/static/3ef9f60c/images/title.png');
-    var f2= frisby.create('test 2')
-            .get('http://192.168.5.120:8080/static/3ef9f60c/images/title.png');
-    var f3= frisby.create('test 3')
-            .get('http://192.168.5.120:8080/static/3ef9f60c/images/title.png');
-    if(true) {
-        toss(pipeLine([f1, f2, f3]), 0)();
-    }else {
-        //console.log('toss 0');
-        pipeLine([f1, f2, f3]).toss();
-    }
+var testsPipline = function() {
+    var f1 = frisby.create('test 1')
+        .get('http://192.168.5.120:8080/static/3ef9f60c/images/title.png');
+    var f2 = frisby.create('test 2')
+        .get('http://192.168.5.120:8080/static/3ef9f60c/images/title.png');
+    var f3 = frisby.create('test 3')
+        .get('http://192.168.5.120:8080/static/3ef9f60c/images/title.png');
+    toss(pipeLine([f1, f2, f3]), 0)();
+    toss(pipeLine([f2,f3]), 0)();
 }
 
 var tests = function() {
@@ -65,7 +61,7 @@ var tests = function() {
                                 var end = new Date();
                                 end.setDate(end.getDate() + 1);
                                 var mapWordId = function(w){return w.wordID};
-                                var mapSentencesId = function(s){return w.contentID};
+                                var mapSentencesId = function(s){return s.contentID};
                                 var filterAll = function(){return true}
                                 var pipelineDecisions = [
                                     {type:schema.作业.类型.单词朗读.值,map:mapWordId, filter:filterAll,isWord:true},
@@ -81,7 +77,7 @@ var tests = function() {
                                     var sentencesIds = d.isWord ? [] : sentences.results.filter(d.filter).map(d.map);
                                     if(wordIds.length + sentencesIds.length > 0) {
                                         frisbies.push(功能.布置作业(tToken, unit.name, '自动化测试布置作业-' + d.type + '标题', '自动化测试布置作业-' + d.type + '留言', timeHour(start), timeHour(end),
-                                            wordIds, sentencesIds, sInfo.results[0].tclass.classID, d.type));
+                                            wordIds, sentencesIds, [sInfo.results[0].tclass.classID], d.type));
                                     }
                                 });
                                 pipeLine(frisbies).after(function(){

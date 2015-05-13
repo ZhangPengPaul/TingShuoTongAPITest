@@ -2,7 +2,13 @@ var frisby = require("frisby");
 var config = require('./config.js');
 var schema = require('./schema.js');
 var JSONSchemaValidator = require('jsonschema').Validator;
-var querystring = require('querystring');
+var qs = require('qs');
+//var Buffer = require('buffer');
+
+var formData = function(obj){
+    var str = qs.stringify(obj, { arrayFormat: 'brackets' });
+    return new Buffer(str.toString('binary'),'binary');
+}
 
 var schemaJsonString = function(path, str, schema){
     var jsVal = new JSONSchemaValidator();
@@ -65,7 +71,7 @@ var 学生登陆=function(name,password) {
 var getWordOfUnit = function(token,bookID,unit){
     var p ={bookID:bookID,meta1:unit};
     return frisby.create('get unit words')
-        .get(config.SERVER + 'word/list?' + querystring.stringify(p), {
+        .get(config.SERVER + 'word/list?' + qs.stringify(p), {
             headers:{
                 "Cookie": token
             }
@@ -90,7 +96,7 @@ var getSentenceContentOfUnit = function(token, bookID, unit, type){
     var p = { bookID:bookID, meta1:unit};
     type && (p.type = type);
     return frisby.create('get unit sentences')
-        .get(config.SERVER + 'content/list?'+querystring.stringify(p),{
+        .get(config.SERVER + 'content/list?'+qs.stringify(p),{
             headers:{
                 "Cookie": token
             }
@@ -165,8 +171,9 @@ var teacherInfo = function(token){
 
 var addHomework = function(token, unit, title, message, start, deadline, words, sentences, classes,type){
     var p={meta1:unit,title:title,message:message,limitStart:start,limitEnd:deadline,wordID:words,contentID:sentences,classID:classes,homeworkType:type};
+    console.log('add homework:' + JSON.stringify(p));
     return frisby.create('add homework type ' + type)
-        .post(config.SERVER+'homework/assign', p,{
+        .post(config.SERVER+'homework/assign', formData(p),{
             headers:{
                 "Cookie": token
             }
@@ -208,3 +215,4 @@ exports.老师获取书籍 = 老师获取书籍;
 exports.获取单元句子内容=getSentenceContentOfUnit;
 exports.获取单元单词内容=getWordOfUnit;
 exports.布置作业=addHomework;
+exports.formData = formData;
