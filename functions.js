@@ -171,7 +171,7 @@ var teacherInfo = function(token){
 
 var addHomework = function(token, unit, title, message, start, deadline, words, sentences, classes,type){
     var p={meta1:unit,title:title,message:message,limitStart:start,limitEnd:deadline,wordID:words,contentID:sentences,classID:classes,homeworkType:type};
-    console.log('add homework:' + JSON.stringify(p));
+    //console.log('add homework:' + JSON.stringify(p));
     return frisby.create('add homework type ' + type)
         .post(config.SERVER+'homework/assign', formData(p),{
             headers:{
@@ -183,6 +183,36 @@ var addHomework = function(token, unit, title, message, start, deadline, words, 
         .expectJSON({
             code:200,
             msg:'布置作业成功'
+        });
+}
+
+var studentGetHomeworkList = function(token, status, pageIndex, pageSize){
+    var p = {status:status,page:pageIndex,pageSize:pageSize};
+    return frisby.create('get homework list')
+        .get(config.SERVER + 'homework/student?' + qs.stringify(p),{
+            headers:{
+                "Cookie": token
+            }
+        })
+        .expectStatus(200)
+        //.inspectJSON()
+        .expectJSONSchema({
+            properties:{
+                code: {type: "integer", maximum: 200, minimum: 200},
+                msg: {type: "string", pattern: '成功'},
+                results:{
+                    type:'object',
+                    properties:{
+                        last:{type:'boolean'},
+                        content:{
+                            type:'array',
+                            items:schema.作业.学生作业信息
+                        }
+                    },
+                    required:['content','last']
+                }
+            },
+            required:['code', 'msg','results']
         });
 }
 
@@ -216,3 +246,4 @@ exports.获取单元句子内容=getSentenceContentOfUnit;
 exports.获取单元单词内容=getWordOfUnit;
 exports.布置作业=addHomework;
 exports.formData = formData;
+exports.学生获取作业列表=studentGetHomeworkList;

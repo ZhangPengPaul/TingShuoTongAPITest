@@ -107,6 +107,28 @@ exports.作业={
             filter:function(s){return true}},
         对话朗读:{值:"对话朗读",//0
             filter:function(s){return s.type == 0}}
+    },
+    状态:{
+        失效:-1,
+        未完成:0,
+        已完成:1,
+        进行中:2
+    },
+    学生作业信息:{
+        id:'homework/student/list/items',
+        properties:{
+            status:{type:'integer'},
+            homework:{
+                type:'object',
+                properties:{
+                    homeworkID:{type:'integer'},
+                    type:{type:'string',pattern:'[单词句子短文朗读听写对话选词义]+'},
+                    message:{type:'string'}
+                },
+                required:['homeworkID','type']
+            }
+        },
+        required:[]
     }
 }
 exports.用户={
