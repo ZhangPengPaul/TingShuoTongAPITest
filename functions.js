@@ -163,7 +163,7 @@ var teacherInfo = function(token){
             properties: {
                 code: {type: "integer", maximum: 200, minimum: 200},
                 msg: {type: "string", pattern: '获取成功'},
-                results: {type: 'array', items: [schema.用户.老师.信息]}
+                results: schema.用户.老师.信息
             },
             required: ['code', 'msg','results']
         })
@@ -186,6 +186,95 @@ var addHomework = function(token, unit, title, message, start, deadline, words, 
         });
 }
 
+var getHomeworkWordDetail = function(token, doneID){
+    return frisby.create('get homework contents')
+        .get(config.SERVER + 'homework/details?'+qs.stringify({hDoneID:doneID}),{
+            headers:{
+                "Cookie": token
+            }
+        })
+        .expectStatus(200)
+        .expectJSONSchema({
+            properties: {
+                code: {type: "integer", maximum: 200, minimum: 200},
+                msg: {type: "string", pattern: '成功'},
+                results: {
+                    type: 'object',
+                    properties:{
+                        list:{
+                            type:'array',
+                            items: schema.书籍.单元.单词.信息
+                        }
+                    },
+                    required:['list']
+                }
+            },
+            required: ['code', 'msg','results']
+        }).afterJSON(function(body){
+            for(var i = 0; i < body.results.length; i++){
+                //console.log('to schema:' + body.results[i].content);
+                var json =JSON.parse(body.results.list[i].content);
+                schemaJsonString('results.list[' + i + '].content', json, {
+                    type:'array',
+                    items:schema.书籍.单元.单词.值
+                });
+                schemaJsonString('results.list[' + i + '].content', json, {
+                    type: 'array',
+                    items: json.type == schema.书籍.句子类型.对话 ? schema.书籍.单元.句子.值.对话 : schema.书籍.单元.句子.值.非对话
+                });
+            }
+        });
+}
+
+var getHomeworkSentenceDetail = function(token, doneID){
+    return frisby.create('get homework contents')
+        .get(config.SERVER + 'homework/details?'+qs.stringify({hDoneID:doneID}),{
+            headers:{
+                "Cookie": token
+            }
+        })
+        .expectStatus(200)
+        .expectJSONSchema({
+            properties: {
+                code: {type: "integer", maximum: 200, minimum: 200},
+                msg: {type: "string", pattern: '成功'},
+                results: {
+                    type: 'object',
+                    properties:{
+                        list:{
+                            type:'array',
+                            items: schema.书籍.单元.句子.信息
+                        }
+                    },
+                    required:['list']
+                }
+            },
+            required: ['code', 'msg','results']
+        }).afterJSON(function(body){
+            for(var i = 0; i < body.results.length; i++){
+                //console.log('to schema:' + body.results[i].content);
+                var json =JSON.parse(body.results.list[i].content);
+                schemaJsonString('results.list[' + i + '].content', json, {
+                    type: 'array',
+                    items: json.type == schema.书籍.句子类型.对话 ? schema.书籍.单元.句子.值.对话 : schema.书籍.单元.句子.值.非对话
+                });
+            }
+        });
+}
+
+var commitHomework = function(token, doneID, score, itemScores){
+    var p = {hDoneID:doneID, averageScore:score, jsonResult:JSON.stringify(itemScores)};
+    return frisby.create('student commit homework')
+        .post(config.SERVER+'homework/submit',p,{
+            headers:{
+                "Cookie": token
+            }
+        })
+        .expectStatus(200)
+        .inspectJSON()
+        .expectJSON({"code":200,"msg":"提交成功"});
+}
+
 var studentGetHomeworkList = function(token, status, pageIndex, pageSize){
     var p = {status:status,page:pageIndex,pageSize:pageSize};
     return frisby.create('get homework list')
@@ -195,7 +284,7 @@ var studentGetHomeworkList = function(token, status, pageIndex, pageSize){
             }
         })
         .expectStatus(200)
-        //.inspectJSON()
+        .inspectJSON()
         .expectJSONSchema({
             properties:{
                 code: {type: "integer", maximum: 200, minimum: 200},
@@ -229,7 +318,7 @@ var studentInfo = function(token){
             properties: {
                 code: {type: "integer", maximum: 200, minimum: 200},
                 msg: {type: "string", pattern: '获取成功'},
-                results: {type: 'array', items: [schema.用户.学生.信息]}
+                results: schema.用户.学生.信息
             },
             required: ['code', 'msg','results']
         });
@@ -247,3 +336,6 @@ exports.获取单元单词内容=getWordOfUnit;
 exports.布置作业=addHomework;
 exports.formData = formData;
 exports.学生获取作业列表=studentGetHomeworkList;
+exports.学生提交作业=commitHomework;
+exports.获得单词作业内容=getHomeworkWordDetail;
+exports.获得句子作业内容=getHomeworkSentenceDetail;

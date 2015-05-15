@@ -60,7 +60,7 @@ exports.书籍={
             },
             值:{
                 对话:{
-                    id:'book/unit/content/values',
+                    id:'book/unit/content/dialog/values',
                     properties:{
                         text:{type:"array",item:{type:"string"}},
                         voice:{type:"array",item:{type:"string"}},
@@ -69,7 +69,7 @@ exports.书籍={
                     required:['text','voice']
                 },
                 非对话: {
-                    id: 'book/unit/content/values',
+                    id: 'book/unit/content/notdialog/values',
                     properties: {
                         text: {type: "string", minLength: 1},
                         voice: {type: "string", minLength: 5},
@@ -118,6 +118,7 @@ exports.作业={
         id:'homework/student/list/items',
         properties:{
             status:{type:'integer'},
+            hDoneID:{type:'number'},
             homework:{
                 type:'object',
                 properties:{
@@ -125,10 +126,10 @@ exports.作业={
                     type:{type:'string',pattern:'[单词句子短文朗读听写对话选词义]+'},
                     message:{type:'string'}
                 },
-                required:['homeworkID','type']
+                required:['homeworkID']
             }
         },
-        required:[]
+        required:['hDoneID','status']
     }
 }
 exports.用户={
