@@ -324,6 +324,22 @@ var studentInfo = function(token){
         });
 }
 
+var teacherSetScore = function(token, doneID, score){
+    return frisby.create('teacher set score')
+        .post(config.SERVER + 'homework/teacherScore',{hDoneID:doneID,score:score},{
+            headers:{
+                "Cookie": token
+            }
+        })
+        .expectStatus(200)
+        .inspectJSON()
+        .expectJSONSchema({
+            code: {type: "integer", maximum: 200, minimum: 200},
+            msg: {type: "string", pattern: '设置分数成功'}
+        });
+}
+
+exports.老师评分=teacherSetScore;
 exports.老师信息=teacherInfo;
 exports.学生信息=studentInfo;
 exports.登录=登录;

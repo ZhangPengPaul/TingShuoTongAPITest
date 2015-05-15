@@ -134,28 +134,37 @@ var tests = function() {
                                                 }else{
                                                     d.contents.forEach(function(listItem) {
                                                         var content = JSON.parse(listItem.content);
-                                                        if (d.contents.type == schema.书籍.句子类型.对话) {
+                                                        var voices = [];
+                                                        if (listItem.type == schema.书籍.句子类型.对话) {
+                                                            //TODO:对话类型还没做，不知道提交的作业结果格式
                                                             content.forEach(function (dialog) {
-                                                                var voices = [];
-                                                                dialog.forEach(function (s) {
+                                                                dialog.text.forEach(function (text) {
                                                                     voices.push({score: getRandomInt(0, 100), voice: ""})
                                                                 });
-                                                                scores.push({id: dialog.contentID, voice: voices});
                                                             });
                                                         } else {
-                                                            content.forEach(function (cnt) {
-                                                                scores.push({id: cnt.contentID, voice: [
-                                                                    {score: getRandomInt(0, 100), voice: ""}
-                                                                ]});
+                                                            var voices = [];
+                                                            content.forEach(function (text) {
+                                                                voices.push({score: getRandomInt(0, 100), voice: ""});
                                                             });
                                                         }
+                                                        scores.push({id: listItem.contentID, voice: voices});
                                                     });
                                                 }
                                                 commits.push(功能.学生提交作业(sToken, d.work.hDoneID, getRandomInt(0,100), scores));
                                             });
                                             pipeLine(commits).after(function(){
-                                                功能.登出(sToken).toss();
-                                                功能.登出(tToken).toss();
+                                                //老师评分
+                                                var teacherSetScore = [];
+                                                pipelineDecisions.forEach(function(d){
+                                                    teacherSetScore.push(功能.老师评分(tToken, d.work.hDoneID, getRandomInt(0, 100)));
+                                                });
+                                                pipeLine(teacherSetScore).after(function(){
+                                                    //最后退出登录
+                                                    功能.登出(sToken).toss();
+                                                    功能.登出(tToken).toss();
+                                                });
+                                                teacherSetScore[0].toss();
                                             });
                                             commits[0].toss();
                                         });
