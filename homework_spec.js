@@ -52,7 +52,7 @@ var tests = function() {
     功能.学生登陆(配置.学生用户名,配置.密码).after(function(err,res){
         var sToken = 配置.getToken(res);
         功能.学生信息(sToken).afterJSON(function(sInfo) {
-            功能.老是登录(配置.老师用户名, 配置.密码).after(function (err, res) {
+            功能.老师登录(配置.老师用户名, 配置.密码).after(function (err, res) {
                 var tToken = 配置.getToken(res);
                 功能.老师信息(tToken).afterJSON(function(tInfo) {
                     //这个老师是这个学生的课程老师

@@ -47,7 +47,7 @@ var 登录=function(url, name, password){
         .inspectJSON();
 }
 
-var 老是登录=function(name,password) {
+var 老师登录=function(name,password) {
     return 登录('teacher/login', name, password)
         .expectJSONSchema({
             properties: {
@@ -89,6 +89,9 @@ var getWordOfUnit = function(token,bookID,unit){
                 var json =JSON.parse(body.results[i].content);
                 schemaJsonString('results[' + i + '].content', body.results[i].content, schema.书籍.单元.单词.值);
             }
+        })
+        .after(function(){
+
         })
 }
 
@@ -343,7 +346,7 @@ exports.老师评分=teacherSetScore;
 exports.老师信息=teacherInfo;
 exports.学生信息=studentInfo;
 exports.登录=登录;
-exports.老是登录 = 老是登录;
+exports.老师登录 = 老师登录;
 exports.学生登陆 = 学生登陆;
 exports.登出 = 登出;
 exports.老师获取书籍 = 老师获取书籍;
