@@ -9,12 +9,16 @@ var tests = function() {
         }).toss()
     }).toss();
 
-    功能.学生登陆(配置.学生用户名, 配置.密码).after(function (err, res) {
-        var token = 配置.getToken(res);
-        功能.学生信息(token).after(function(){
-            功能.登出(token).toss()
-        }).toss()
-    }).toss();
+
+
+    功能.学生登陆(配置.学生用户名, 配置.密码).after(
+        function (err, res) {
+            var token = 配置.getToken(res);
+            功能.学生信息(token).after(function () {
+                功能.登出(token).toss()
+            }).toss()
+        }
+    ).toss();
 
     功能.登录('student/login', "", "mima")
         .expectJSON({
